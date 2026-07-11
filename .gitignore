@@ -1,37 +1,13 @@
-# Byte-compiled files and interpreter caches
-__pycache__/
-*.py[cod]
-*$py.class
+# Dependencies
+node_modules/
 
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-
-# Packaging and build artifacts
-build/
+# Build output
 dist/
-*.egg-info/
-.eggs/
-*.egg
-wheels/
+*.tsbuildinfo
 
-# Test, coverage, type-checking, and lint caches
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-coverage.xml
-.tox/
-.nox/
-.mypy_cache/
-.pyright/
-.ruff_cache/
-.hypothesis/
-
-# Jupyter
-.ipynb_checkpoints/
+# Test and coverage
+coverage/
+.vitest/
 
 # Environment variables and local secrets
 .env
