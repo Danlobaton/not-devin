@@ -1,0 +1,32 @@
+[project]
+name = "not-devin"
+version = "0.1.0"
+description = "Eval-native coding agent (interview prep)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph>=0.4",
+    "langchain-openai>=0.3",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+not-devin = "not_devin.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+"not_devin" = "src"
+
+[tool.setuptools]
+packages = ["not_devin", "not_devin.tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

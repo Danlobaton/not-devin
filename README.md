@@ -1,49 +1,128 @@
 # THIS IS **NOT DEVIN**
 
-There are coding agents, there is Devin, and then there is **NOT DEVIN**.
+There are coding agents, there is Devin, and then there is NOT DEVIN.
 
-NOT DEVIN is an eval-native coding agent: a system designed from the beginning to be dropped into different evaluation environments, measured, compared, and improved without rebuilding the agent around each harness.
+NOT DEVIN is an eval-native coding agent that takes a GitHub issue, inspects a repository, produces a validated patch, and explains how it got there.
 
-That constraint creates room to push on the subsystems that make agentic software engineering actually work. The interesting problems are not confined to prompting: they live in the loop, the harness, the execution environment, the state model, and the feedback signals that distinguish progress from activity. This project is a place to make those decisions explicitly—and bake in a few opinions of my own.
+The project is designed around a simple premise: coding agents should be easy to evaluate, debug, compare, and improve without rebuilding them around every new benchmark or execution harness.
 
-## The Premise
+## What It Does
 
-Make a coding agent whose performance is easy to evaluate and whose behavior is possible to explain.
+Given a GitHub issue and a repository, NOT DEVIN:
 
-That requires a clean contract between the agent and the environment evaluating it. The runtime accepts a task, workspace, constraints, and available capabilities through stable interfaces. It emits structured events, artifacts, resource usage, and a terminal outcome. Provisioning, verification, and scoring stay outside the core agent loop.
+1. Reads the issue.
+2. Inspects the codebase.
+3. Identifies relevant files.
+4. Edits the implementation.
+5. Runs tests and linting.
+6. Iterates on failures.
+7. Produces a patch and implementation summary.
+8. Opens a draft pull request.
+9. Generates a PR ready description
 
-Inside that boundary, the agent is treated as a runtime system rather than a chat interface with shell access. It has an explicit execution loop, typed tools, durable state, controlled side effects, and observable decisions. The model is an important component, but it is not the system.
+## Why This Project Exists
 
-## The Evaluation Contract
+The interesting problems in coding agents are not limited to prompting. They also live in:
 
-The same agent configuration should run against local fixtures, established coding benchmarks, regression suites, or custom internal tasks. Supporting a new environment should require an adapter, not a fork of the runtime.
+* the agent loop
+* tool execution
+* state management
+* verification
+* observability
+* failure recovery
+* evaluation
 
-An evaluation adapter should only need to define:
+NOT DEVIN treats the model as one component inside a larger runtime.
 
-- How a task and workspace are provisioned.
-- Which tools, resources, and time limits are available.
-- How completion is verified and scored.
-- Which traces, patches, costs, and timing metrics are collected.
+The model proposes actions. The runtime validates and executes them.
 
-This is not only benchmark plumbing. A portable evaluation boundary makes changes to prompts, models, tools, memory, and runtime policy comparable under controlled conditions—and makes performance claims reproducible rather than anecdotal.
+## Evaluation-First Design
 
-## Opinions, Subject to Evidence
+The core agent is kept separate from repository provisioning, hidden tests, scoring, and benchmark-specific logic.
 
-- The harness matters at least as much as the prompt.
-- State should be explicit, replayable, and distinct from model-visible context.
-- Tool calls are untrusted requests, not instructions from a privileged operator.
-- Side effects need policy and identity; retries need idempotency.
-- A plausible final message is not evidence that a software task was completed.
-- Traces are part of the product when the system's behavior is probabilistic.
-- Autonomy without evaluation is mostly confidence theater.
-- The agent should adapt to an evaluation environment; the evaluation environment should not have to absorb the agent's internals.
+This makes it possible to run the same agent across:
 
-These are starting positions, not sacred architecture. The point of the project is to implement them, break them, measure the results, and revise accordingly.
+* local demo repositories
+* custom GitHub issue sets
+* coding-agent benchmarks
+* different evaluation harnesses
+
+Each run produces both a result and a trace of how that result was reached.
+
+## Agent Capabilities
+
+The initial tool surface includes:
+
+```
+read_issue
+search_code
+read_file
+write_file
+run_tests
+run_linter
+git_diff
+git_status
+```
+
+The agent does not receive unrestricted shell access.
+
+## Example Run
+
+```
+Issue received
+→ repository inspected
+→ relevant code located
+→ implementation edited
+→ tests executed
+→ failure analyzed
+→ patch revised
+→ verification passes
+→ patch and summary produced
+```
+
+A demo repository can include issues such as:
+
+* incorrect pagination
+* missing input validation
+* broken date sorting
+* uncovered edge cases
+* stale cache behavior
+
+## Initial Scope
+
+The first version should:
+
+* accept a GitHub issue
+* operate on a local repository
+* use controlled tools
+* modify code
+* run verification
+* generate a patch
+* emit an execution trace
+* produce a PR-ready summary
+
+It does not need:
+
+* a web interface
+* autonomous issue selection
+* unrestricted terminal access
+* distributed scheduling
+* automatic PR publication
+
+## Project Goals
+
+NOT DEVIN is a place to explore:
+
+* how issue text becomes an executable task
+* how agents recover from failed hypotheses
+* how progress is distinguished from activity
+* how coding-agent runs can be evaluated
+* how agent behavior can be made explainable
 
 ## Is This Devin?
 
 No.
 
-It is not affiliated with Devin or Cognition, does not attempt to reproduce their product, and should not be mistaken for either.
+NOT DEVIN is not affiliated with Devin or Cognition. It does not attempt to reproduce their product and should not be mistaken for either.
 
 The name has been trying to tell you this the whole time.
