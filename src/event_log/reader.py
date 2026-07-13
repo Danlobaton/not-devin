@@ -11,6 +11,16 @@ def read_events(path: Path) -> list[dict]:
 
     Tolerates a truncated final line (a crash mid-write); corruption on
     an earlier line is a real error and raises.
+
+    Args:
+        path: Path to the events.jsonl file to read.
+
+    Returns:
+        The parsed events in file order. Returns an empty list if the file
+        does not exist.
+
+    Raises:
+        ValueError: If a line before the last one is not valid JSON.
     """
     path = Path(path)
     if not path.exists():
