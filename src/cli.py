@@ -28,6 +28,7 @@ def cmd_run(
     task: str,
     model: BaseChatModel | None = None,
     root: Path = DEFAULT_ROOT,
+    verify_command: str | None = None,
 ) -> int:
     """Run the agent on a workspace + task, logging every event."""
     run_id, final_state = run_agent(
@@ -35,6 +36,7 @@ def cmd_run(
         task=task,
         workspace=str(workspace),
         max_iterations=DEFAULT_MAX_ITERATIONS,
+        verify_command=verify_command,
         root=root,
     )
     print(f"run_id: {run_id}")
@@ -70,6 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     run_p = sub.add_parser("run", help="Run the agent on a workspace")
     run_p.add_argument("--workspace", type=Path, required=True)
     run_p.add_argument("--task", type=str, required=True)
+    run_p.add_argument("--verify-command", type=str, default=None)
 
     inspect_p = sub.add_parser("inspect", help="Inspect a run's event log")
     inspect_p.add_argument("run_id")
@@ -80,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "run":
-        return cmd_run(args.workspace, args.task)
+        return cmd_run(args.workspace, args.task, verify_command=args.verify_command)
     if args.command == "inspect":
         return cmd_inspect(args.run_id)
     if args.command == "resume":

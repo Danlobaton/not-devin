@@ -23,6 +23,7 @@ def run_agent(
     task: str,
     workspace: str,
     max_iterations: int,
+    verify_command: str | None = None,
     tools: Sequence[BaseTool] | None = None,
     root: Path | str = DEFAULT_ROOT,
 ) -> tuple[str, AgentState]:
@@ -33,7 +34,13 @@ def run_agent(
     """
     run_id = new_run_id()
     writer = EventLogWriter(run_id, root=root)
-    writer.write("run_started", task=task, workspace=workspace, max_iterations=max_iterations)
+    writer.write(
+        "run_started",
+        task=task,
+        workspace=workspace,
+        max_iterations=max_iterations,
+        verify_command=verify_command,
+    )
 
     state: AgentState = {
         "messages": [HumanMessage(content=task)],
@@ -41,6 +48,7 @@ def run_agent(
         "iteration": 0,
         "max_iterations": max_iterations,
         "terminal_reason": None,
+        "verify_command": verify_command,
     }
 
     final_state = _stream_and_log(model, state, tools, writer)

@@ -45,3 +45,7 @@ class AgentState(TypedDict):
     run_started_at: NotRequired[str]
     run_deadline: NotRequired[str]
     last_provider_error: NotRequired[str | None]
+    invalid_strikes: NotRequired[int]
+    last_tool_signature: NotRequired[str | None]
+    signature_repeats: NotRequired[int]
+    verify_command: NotRequired[str | None]

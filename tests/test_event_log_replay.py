@@ -59,3 +59,21 @@ def test_rebuilds_state_from_run_started_and_deltas() -> None:
 def test_raises_without_run_started_event() -> None:
     with pytest.raises(ValueError, match="run_started"):
         rebuild_state([{"type": "state_delta", "node": "agent", "delta": {}}])
+
+
+def test_apply_delta_copies_arbitrary_scalar_fields() -> None:
+    state = {
+        "messages": [HumanMessage(content="fix bug")],
+        "workspace": "/tmp/ws",
+        "iteration": 0,
+        "max_iterations": 5,
+        "terminal_reason": None,
+    }
+
+    updated = apply_delta(
+        state, {"invalid_strikes": 2, "last_tool_signature": "sig", "usage": {"total_tokens": 7}}
+    )
+
+    assert updated["invalid_strikes"] == 2
+    assert updated["last_tool_signature"] == "sig"
+    assert updated["usage"] == {"total_tokens": 7}

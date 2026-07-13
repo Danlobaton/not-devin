@@ -24,3 +24,17 @@ def test_renders_one_line_per_event_in_order() -> None:
 
 def test_renders_empty_log_as_empty_string() -> None:
     assert render_timeline([]) == ""
+
+
+def test_run_started_line_surfaces_verify_command() -> None:
+    events = [
+        {
+            "seq": 0,
+            "type": "run_started",
+            "task": "fix bug",
+            "workspace": "/tmp/ws",
+            "verify_command": "pytest -q",
+        }
+    ]
+
+    assert "verify_command='pytest -q'" in render_timeline(events)
