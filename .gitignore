@@ -134,3 +134,4 @@ local.yml
 *.local.yml
 ROADMAP.md
 docs/superpowers/*
+.not-devin/

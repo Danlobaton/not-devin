@@ -28,7 +28,7 @@ build-backend = "setuptools.build_meta"
 "not_devin" = "src"
 
 [tool.setuptools]
-packages = ["not_devin", "not_devin.github", "not_devin.tools"]
+packages = ["not_devin", "not_devin.event_log", "not_devin.github", "not_devin.tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
