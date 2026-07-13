@@ -58,7 +58,9 @@ def resume_agent(
     Resume always re-enters at the agent node. A crash between the agent
     step completing and the tool step running will cause the model to be
     re-invoked with an unanswered tool call still in `messages` — this is a
-    known limitation of resuming without a full graph checkpointer.
+    known limitation of resuming without a full graph checkpointer. Against
+    a live provider (e.g. OpenAI), this is typically a hard 400 error, not
+    just redundant work.
     """
     writer = EventLogWriter(run_id, root=root)
     events = read_events(writer.path)

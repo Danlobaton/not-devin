@@ -31,6 +31,22 @@ class EventLogWriter:
         self._dir.mkdir(parents=True, exist_ok=True)
         self.path = self._dir / "events.jsonl"
         self._seq = len(read_events(self.path))
+        self._truncate_trailing_partial_line()
+
+    def _truncate_trailing_partial_line(self) -> None:
+        """Drop a trailing newline-less fragment left by a crash mid-write.
+
+        Without this, reopening for append after a genuine mid-write crash
+        would concatenate the next event directly onto the partial fragment,
+        corrupting the log.
+        """
+        if not self.path.exists():
+            return
+        raw = self.path.read_bytes()
+        if raw and not raw.endswith(b"\n"):
+            last_newline = raw.rfind(b"\n")
+            with self.path.open("wb") as handle:
+                handle.write(raw[: last_newline + 1])
 
     def write(self, event_type: str, **fields: Any) -> dict:
         """Append one event and return the full event dict written.
