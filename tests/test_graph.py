@@ -60,7 +60,7 @@ def test_runs_model_tool_model_cycle(tmp_path: Path) -> None:
     assert result["messages"][-1].content == "README inspected"
     assert result["iteration"] == 2
     assert result["terminal_reason"] == "success"
-    assert [tool.name for tool in model.bound_tools] == ["read_file"]
+    assert [tool.name for tool in model.bound_tools] == ["read_file", "edit_file"]
 
 
 def test_stops_before_tool_execution_at_iteration_limit(tmp_path: Path) -> None:
