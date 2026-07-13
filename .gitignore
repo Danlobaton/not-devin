@@ -135,3 +135,4 @@ local.yml
 ROADMAP.md
 docs/superpowers/*
 .claude/worktrees/
+.not-devin/
