@@ -1,0 +1,22 @@
+[model]
+provider = "openai"
+name = "gpt-5-nano"
+max_output_tokens = 4096
+temperature = 0
+
+[timeouts]
+call_seconds = 120
+run_seconds = 1800
+
+[retry]
+max_retries = 2
+base_delay_seconds = 1.0
+
+[budget]
+# Omitted limits are unbounded.
+# max_model_calls = 20
+# max_total_tokens = 100000
+# max_cost_usd = 2.0
+
+# When max_cost_usd is configured, add a [pricing] table with the same provider
+# and model plus their current positive input_per_million/output_per_million.
