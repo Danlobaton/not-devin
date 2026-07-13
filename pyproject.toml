@@ -8,6 +8,8 @@ dependencies = [
     "langgraph>=0.4",
     "langchain-openai>=0.3",
     "python-dotenv>=1.0",
+    "httpx>=0.28.1",
+    "pyjwt[crypto]>=2.13.0",
 ]
 
 [project.scripts]
@@ -26,7 +28,7 @@ build-backend = "setuptools.build_meta"
 "not_devin" = "src"
 
 [tool.setuptools]
-packages = ["not_devin", "not_devin.tools"]
+packages = ["not_devin", "not_devin.github", "not_devin.tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

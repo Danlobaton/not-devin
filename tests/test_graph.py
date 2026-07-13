@@ -3,7 +3,7 @@ from typing import Any, Sequence
 
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from langchain_core.tools import BaseTool
+from langchain_core.tools import BaseTool, tool
 from pydantic import Field
 
 from not_devin.graph import build_graph
@@ -96,3 +96,27 @@ def test_stops_before_tool_execution_at_iteration_limit(tmp_path: Path) -> None:
     )
     assert result["iteration"] == 1
     assert result["terminal_reason"] == "iteration_limit"
+
+
+def test_build_graph_accepts_explicit_tools(tmp_path: Path) -> None:
+    @tool
+    def sentinel() -> str:
+        """Return a sentinel value."""
+        return "sentinel"
+
+    model = ScriptedToolCallingModel(
+        messages=iter([AIMessage(content="done")])
+    )
+
+    build_graph(model, tools=[sentinel]).invoke(
+        {
+            "messages": [HumanMessage(content="Finish")],
+            "workspace": str(tmp_path),
+            "iteration": 0,
+            "max_iterations": 1,
+        }
+    )
+
+    assert [bound_tool.name for bound_tool in model.bound_tools] == [
+        "sentinel"
+    ]
