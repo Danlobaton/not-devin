@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r 'if ((.tool_input.command // \"\") | test(\"pytest\")) and (.tool_response.success == true) then \"commit\" else \"skip\" end' | { read -r decision; if [ \"$decision\" = \"commit\" ]; then cd \"${CLAUDE_PROJECT_DIR:-.}\"; if [ -n \"$(git status --porcelain 2>/dev/null)\" ]; then git add -A && git commit -m \"Automated commit: unit of work verified (pytest passing)\" --quiet; fi; fi; } 2>/dev/null || true",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-commit.sh\" || true",
             "timeout": 30,
             "statusMessage": "Checking if tests passed to auto-commit..."
           }
