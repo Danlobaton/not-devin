@@ -11,23 +11,23 @@ from ..state import AgentState
 def apply_delta(state: AgentState, delta: dict) -> AgentState:
     """Apply one node's state update onto an AgentState.
 
-    `delta["messages"]`, if present, must already be BaseMessage objects.
+    ``delta["messages"]``, if present, must already be BaseMessage objects
+    and merges via ``add_messages``; every other key copies
+    last-write-wins, so new state fields never silently drop on resume.
 
     Args:
-        state: The current AgentState.
-        delta: A dictionary containing state updates. If "messages" is present,
-            it must already be BaseMessage objects (not JSON dicts).
+        state: The state to update (not mutated).
+        delta: One node's partial update.
 
     Returns:
         A new AgentState with the delta applied.
     """
     updated = dict(state)
-    if "messages" in delta:
-        updated["messages"] = add_messages(state["messages"], delta["messages"])
-    if "iteration" in delta:
-        updated["iteration"] = delta["iteration"]
-    if "terminal_reason" in delta:
-        updated["terminal_reason"] = delta["terminal_reason"]
+    for key, value in delta.items():
+        if key == "messages":
+            updated["messages"] = add_messages(state["messages"], value)
+        else:
+            updated[key] = value
     return updated
 
 
@@ -54,6 +54,7 @@ def rebuild_state(events: list[dict]) -> AgentState:
         "iteration": 0,
         "max_iterations": run_started["max_iterations"],
         "terminal_reason": None,
+        "verify_command": run_started.get("verify_command"),
     }
 
     for event in events:

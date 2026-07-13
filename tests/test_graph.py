@@ -254,3 +254,109 @@ def test_reliable_invoker_errors_become_terminal_reasons(
     )
 
     assert result["terminal_reason"] == terminal_reason
+
+
+def test_guard_rejects_invalid_call_then_model_corrects(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("fixture content")
+    model = ScriptedToolCallingModel(
+        messages=iter(
+            [
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {"name": "no_such_tool", "args": {}, "id": "c1", "type": "tool_call"}
+                    ],
+                ),
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "read_file",
+                            "args": {"path": "README.md"},
+                            "id": "c2",
+                            "type": "tool_call",
+                        }
+                    ],
+                ),
+                AIMessage(content="done"),
+            ]
+        )
+    )
+
+    result = build_graph(model).invoke(
+        {
+            "messages": [HumanMessage(content="Inspect README.md")],
+            "workspace": str(tmp_path),
+            "iteration": 0,
+            "max_iterations": 5,
+        }
+    )
+
+    tool_messages = [
+        message for message in result["messages"] if isinstance(message, ToolMessage)
+    ]
+    assert "unknown tool" in tool_messages[0].content
+    assert tool_messages[1].content == "fixture content"
+    assert result["invalid_strikes"] == 1
+    assert result["terminal_reason"] == "success"
+
+
+def test_repeated_identical_batches_terminate(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("fixture content")
+    repeated_call = {
+        "name": "read_file",
+        "args": {"path": "README.md"},
+        "id": "c1",
+        "type": "tool_call",
+    }
+    model = ScriptedToolCallingModel(
+        messages=iter(
+            [
+                AIMessage(content="", tool_calls=[{**repeated_call, "id": f"c{n}"}])
+                for n in range(3)
+            ]
+        )
+    )
+
+    result = build_graph(model).invoke(
+        {
+            "messages": [HumanMessage(content="Inspect README.md")],
+            "workspace": str(tmp_path),
+            "iteration": 0,
+            "max_iterations": 10,
+        }
+    )
+
+    assert result["terminal_reason"] == "repeated_tool_calls"
+    tool_messages = [
+        message for message in result["messages"] if isinstance(message, ToolMessage)
+    ]
+    assert len(tool_messages) == 2  # third identical batch never executed
+
+
+def test_verify_failure_feeds_back_then_success(tmp_path: Path) -> None:
+    model = ScriptedToolCallingModel(
+        messages=iter(
+            [AIMessage(content="claiming done"), AIMessage(content="actually done")]
+        )
+    )
+
+    result = build_graph(model).invoke(
+        {
+            "messages": [HumanMessage(content="Fix it")],
+            "workspace": str(tmp_path),
+            "iteration": 0,
+            "max_iterations": 5,
+            # Fails on first run (and creates the marker), passes on second.
+            "verify_command": "test -f fixed.txt || { touch fixed.txt; exit 1; }",
+        }
+    )
+
+    assert result["terminal_reason"] == "success"
+    feedback = [
+        message
+        for message in result["messages"]
+        if isinstance(message, HumanMessage)
+        and "Verification failed" in message.content
+    ]
+    assert len(feedback) == 1

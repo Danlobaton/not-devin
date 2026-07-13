@@ -89,3 +89,22 @@ def test_cmd_resume_continues_after_truncation(tmp_path: Path, capsys: Any) -> N
 
     assert exit_code == 0
     assert "terminal_reason: success" in capsys.readouterr().out
+
+
+def test_cmd_run_threads_verify_command(tmp_path: Path, capsys: Any) -> None:
+    model = ScriptedToolCallingModel(
+        messages=iter([AIMessage(content="done") for _ in range(30)])
+    )
+
+    exit_code = cmd_run(
+        tmp_path,
+        "finish",
+        model=model,
+        root=tmp_path / "runs",
+        verify_command="exit 1",
+    )
+
+    # Verification never passes and the scripted model has nothing further
+    # to say, so the run ends at the iteration limit, not success.
+    assert exit_code == 1
+    assert "terminal_reason: iteration_limit" in capsys.readouterr().out

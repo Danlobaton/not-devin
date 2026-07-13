@@ -4,11 +4,13 @@ from collections.abc import Sequence
 from typing import Literal, cast
 
 from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.tools import BaseTool
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import ToolNode
 
+from .guard import build_guard_node
 from .runtime.budget import BudgetExceeded, UsageLedger
 from .runtime.invoker import (
     InvokableModel,
@@ -18,6 +20,7 @@ from .runtime.invoker import (
 )
 from .state import AgentState
 from .tools import TOOLS
+from .verify import build_verify_node
 
 
 def build_graph(
@@ -76,9 +79,7 @@ def build_graph(
         next_iteration = iteration + 1
         terminal_reason = None
 
-        if not response.tool_calls:
-            terminal_reason = "success"
-        elif next_iteration >= state["max_iterations"]:
+        if response.tool_calls and next_iteration >= state["max_iterations"]:
             terminal_reason = "iteration_limit"
 
         return {
@@ -89,15 +90,38 @@ def build_graph(
             **({"usage": ledger.to_state()} if invoker is not None else {}),
         }
 
-    def route_after_agent(state: AgentState) -> Literal["tools", "__end__"]:
+    def route_after_agent(
+        state: AgentState,
+    ) -> Literal["guard", "verify", "__end__"]:
         if state.get("terminal_reason") is not None:
             return END
+        last_message = state["messages"][-1]
+        if isinstance(last_message, AIMessage) and last_message.tool_calls:
+            return "guard"
+        return "verify"
+
+    def route_after_guard(
+        state: AgentState,
+    ) -> Literal["tools", "agent", "__end__"]:
+        if state.get("terminal_reason") is not None:
+            return END
+        if isinstance(state["messages"][-1], ToolMessage):
+            return "agent"
         return "tools"
+
+    def route_after_verify(state: AgentState) -> Literal["agent", "__end__"]:
+        if state.get("terminal_reason") is not None:
+            return END
+        return "agent"
 
     graph = StateGraph(AgentState)
     graph.add_node("agent", agent_node)
+    graph.add_node("guard", build_guard_node(active_tools))
     graph.add_node("tools", ToolNode(active_tools))
+    graph.add_node("verify", build_verify_node())
     graph.add_edge(START, "agent")
-    graph.add_conditional_edges("agent", route_after_agent, ["tools", END])
+    graph.add_conditional_edges("agent", route_after_agent, ["guard", "verify", END])
+    graph.add_conditional_edges("guard", route_after_guard, ["tools", "agent", END])
     graph.add_edge("tools", "agent")
+    graph.add_conditional_edges("verify", route_after_verify, ["agent", END])
     return graph.compile()

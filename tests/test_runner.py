@@ -60,13 +60,15 @@ def test_run_agent_logs_every_event_and_returns_final_state(tmp_path: Path) -> N
         "run_started",
         "llm_start",
         "llm_end",
-        "state_delta",
+        "state_delta",   # agent
+        "state_delta",   # guard (signature bookkeeping)
         "tool_start",
         "tool_end",
-        "state_delta",
+        "state_delta",   # tools
         "llm_start",
         "llm_end",
-        "state_delta",
+        "state_delta",   # agent
+        "state_delta",   # verify (success)
         "run_finished",
     ]
     assert final_state["terminal_reason"] == "success"
