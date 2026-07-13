@@ -1,12 +1,7 @@
-"""Coding tools. Planned surface:
+from langchain_core.tools import BaseTool
 
-- list_files
-- read_file
-- search_text
-- apply_patch
-- run_command
-"""
+from .read_file import read_file
 
-from __future__ import annotations
+TOOLS: list[BaseTool] = [read_file]
 
-TOOLS: list = []
+__all__ = ["TOOLS", "read_file"]

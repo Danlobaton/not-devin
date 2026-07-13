@@ -133,3 +133,4 @@ local.yml
 *.local.yaml
 *.local.yml
 ROADMAP.md
+docs/superpowers/*
