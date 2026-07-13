@@ -27,7 +27,10 @@ def _describe(event: dict) -> str:
     """
     event_type = event.get("type")
     if event_type == "run_started":
-        return f"task={event.get('task')!r} workspace={event.get('workspace')}"
+        described = f"task={event.get('task')!r} workspace={event.get('workspace')}"
+        if event.get("verify_command"):
+            described += f" verify_command={event['verify_command']!r}"
+        return described
     if event_type == "llm_start":
         return f"{len(event.get('messages', []))} messages sent"
     if event_type in ("llm_end", "tool_end"):
